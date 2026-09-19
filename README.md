@@ -1,16 +1,77 @@
-# React + Vite
+# Mercora Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> A modern analytics dashboard for campaign data, anomaly detection, and AI-assisted insights.
 
-Currently, two official plugins are available:
+Mercora Dashboard is the frontend application for **Mercora**, an analytics platform designed to transform campaign data into actionable insights through interactive visualizations, anomaly detection, and AI-generated explanations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The dashboard is built with React and Vite and communicates with a separate FastAPI backend.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚧 Project Status
 
-## Expanding the Oxlint configuration
+**Currently in active development.**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+The dashboard is being developed alongside the Mercora backend. Some features, UI components, and backend integrations are still being refined.
+
+The project will continue to evolve as the complete Mercora platform is developed and deployed.
+
+---
+
+## ✨ Planned / Current Features
+
+- 📊 Interactive campaign analytics dashboard
+- 📈 Data visualization and performance metrics
+- 🚨 Campaign anomaly detection
+- 🤖 AI-assisted explanations and insights
+- 🔍 Campaign-level analysis
+- 📋 Structured analytics views
+- 🎨 Modern and responsive dashboard interface
+- 🔗 Integration with the Mercora FastAPI backend
+
+> Features marked or described here may change during development.
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **React**
+- **Vite**
+- **JavaScript**
+- **HTML5**
+- **CSS**
+- **npm**
+
+### Backend Integration
+
+The dashboard communicates with the separate Mercora backend:
+
+- **FastAPI**
+- **Python**
+- **SQLAlchemy**
+- **PostgreSQL / Neon**
+- **Gemini API**
+
+---
+
+## 🏗️ Architecture
+
+Mercora is being developed as a separate frontend and backend architecture.
+
+```text
+                    MERCORA
+                       │
+              ┌────────┴────────┐
+              │                 │
+              ▼                 ▼
+     Mercora Dashboard     Mercora Backend
+       React + Vite           FastAPI
+              │                 │
+              │    API Calls    │
+              └────────►────────┘
+                                │
+                       ┌────────┴────────┐
+                       ▼                 ▼
+                 PostgreSQL/Neon     Gemini API

@@ -22,7 +22,9 @@ export default function AnomalyFeed({ anomalies, loading, campaigns }) {
             <p className="text-xs text-slate-400">
               {a.metric.toUpperCase()} {a.actual} <span className="text-slate-600">vs {a.expected} expected</span>
             </p>
-            <p className="text-xs text-slate-500 mt-1 line-clamp-2">{a.explanation}</p>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+              {a.explanation ?? 'Analysis pending...'}
+            </p>
           </div>
         ))}
       </div>

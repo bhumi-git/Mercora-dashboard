@@ -1,4 +1,6 @@
-import { LayoutDashboard, Megaphone, TriangleAlert, Sparkles, Sun, Moon } from 'lucide-react'
+import { LayoutDashboard, Megaphone, TriangleAlert, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { apiGet } from '../lib/api'
 
 const navItems = [
   { label: 'Overview', icon: LayoutDashboard },
@@ -7,9 +9,43 @@ const navItems = [
   { label: 'Insights', icon: Sparkles },
 ]
 
-export default function Sidebar({ active, onSelect, theme, onToggleTheme }) {
+function StatusIndicator() {
+  const [lastSync, setLastSync] = useState(null)
+  const [connected, setConnected] = useState(true)
+  const [, forceTick] = useState(0)
+
+  useEffect(() => {
+    const ping = () => {
+      apiGet('/summary')
+        .then(() => { setLastSync(Date.now()); setConnected(true) })
+        .catch(() => setConnected(false))
+    }
+    ping()
+    const pingInterval = setInterval(ping, 30000)
+    const tickInterval = setInterval(() => forceTick((n) => n + 1), 1000)
+    return () => {
+      clearInterval(pingInterval)
+      clearInterval(tickInterval)
+    }
+  }, [])
+
+  const secondsAgo = lastSync ? Math.floor((Date.now() - lastSync) / 1000) : null
+  const label = secondsAgo === null ? '—' : secondsAgo < 60 ? `${secondsAgo}s ago` : `${Math.floor(secondsAgo / 60)}m ago`
+
   return (
-    <aside className="w-56 h-screen bg-[#0F1420] dark:bg-[#0F1420] border-r border-slate-800 flex flex-col p-4">
+    <div className="px-3 py-2 text-xs">
+      <div className="flex items-center gap-2 text-slate-400">
+        <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+        {connected ? 'Live · Syncing' : 'Disconnected'}
+      </div>
+      <p className="text-slate-600 mt-0.5">Last: {label}</p>
+    </div>
+  )
+}
+
+export default function Sidebar({ active, onSelect }) {
+  return (
+    <aside className="w-56 h-screen bg-[#0F1420] border-r border-slate-800 flex flex-col p-4">
       <div className="flex items-center gap-2 mb-8 px-2">
         <div className="w-8 h-8 rounded bg-cyan-500 flex items-center justify-center font-bold text-slate-900">M</div>
         <div>
@@ -35,13 +71,7 @@ export default function Sidebar({ active, onSelect, theme, onToggleTheme }) {
         ))}
       </nav>
 
-      <button
-        onClick={onToggleTheme}
-        className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-slate-200 text-sm"
-      >
-        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-      </button>
+      <StatusIndicator />
     </aside>
   )
 }

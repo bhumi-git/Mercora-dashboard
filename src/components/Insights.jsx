@@ -15,7 +15,10 @@ export default function Insights() {
     setError(null)
     setResult(null)
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/anomalies/${selectedId}/detect`, { method: 'POST' })
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/anomalies/${selectedId}/detect`, {
+        method: 'POST',
+        headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+      })
       if (!res.ok) throw new Error(`Analysis failed (${res.status})`)
       setResult(await res.json())
     } catch (e) {

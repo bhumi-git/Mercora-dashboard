@@ -6,15 +6,16 @@ export function useApi(path, deps = []) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    apiGet(path)
-      .then(d => { if (!cancelled) { setData(d); setError(null) } })
-      .catch(e => { if (!cancelled) setError(e.message) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, deps)
+useEffect(() => {
+  if (!path) { setLoading(false); return }
+  let cancelled = false
+  setLoading(true)
+  apiGet(path)
+    .then(d => { if (!cancelled) { setData(d); setError(null) } })
+    .catch(e => { if (!cancelled) setError(e.message) })
+    .finally(() => { if (!cancelled) setLoading(false) })
+  return () => { cancelled = true }
+}, deps)
 
   return { data, loading, error }
 }

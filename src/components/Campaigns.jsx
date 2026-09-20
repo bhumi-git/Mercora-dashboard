@@ -10,7 +10,10 @@ export default function Campaigns() {
   const handleDelete = async (id, name) => {
     if (!confirm(`Delete "${name}"? This removes all its metrics and anomalies too.`)) return
     setDeletingId(id)
-    await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, { method: 'DELETE' })
+    await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, {
+  method: 'DELETE',
+  headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+})
     setDeletingId(null)
     window.location.reload()
   }

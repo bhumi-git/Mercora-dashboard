@@ -15,8 +15,9 @@ export default function IngestModal({ onClose, onSuccess }) {
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/datasets`, {
-        method: 'POST',
-        body: formData,
+      method: 'POST',
+      headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+      body: formData,
       })
       if (!res.ok) throw new Error(`Upload failed (${res.status})`)
       const data = await res.json()

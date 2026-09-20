@@ -8,11 +8,18 @@ import IngestModal from './IngestModal'
 export default function Overview() {
   const [showModal, setShowModal] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+   const [selectedCampaignId, setSelectedCampaignId] = useState(null)
+   
+   const activeCampaignId = selectedCampaignId ?? null  // null = "All"
 
-  const { data: summary, loading: summaryLoading } = useApi('/summary', [refreshKey])
-  const { data: anomalies, loading: anomaliesLoading } = useApi('/anomalies', [refreshKey])
+  
   const { data: campaigns } = useApi('/campaigns', [refreshKey])
-  const [selectedCampaignId, setSelectedCampaignId] = useState(null)
+  const { data: summary, loading: summaryLoading } = useApi(
+       activeCampaignId ? `/summary?campaign_id=${activeCampaignId}` : '/summary',
+       [refreshKey, activeCampaignId]
+    )
+    const { data: anomalies, loading: anomaliesLoading } = useApi('/anomalies', [refreshKey])
+ 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -23,14 +30,20 @@ export default function Overview() {
           <p className="text-slate-500 text-sm">{campaigns?.length ?? '—'} active campaigns</p>
         </div>
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+  <button
+    onClick={() => setSelectedCampaignId(null)}
+    className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors ${
+      selectedCampaignId === null ? 'bg-cyan-500 text-slate-900 font-medium' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+    }`}
+  >
+    All
+  </button>
   {campaigns?.map((c) => (
     <button
       key={c.id}
       onClick={() => setSelectedCampaignId(c.id)}
       className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors ${
-        (selectedCampaignId ?? campaigns[0]?.id) === c.id
-          ? 'bg-cyan-500 text-slate-900 font-medium'
-          : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+        selectedCampaignId === c.id ? 'bg-cyan-500 text-slate-900 font-medium' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
       }`}
     >
       {c.name}
@@ -57,7 +70,7 @@ export default function Overview() {
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2">
-          <TrendChart campaignId={selectedCampaignId ?? campaigns?.[0]?.id} />
+          <TrendChart campaignId={activeCampaignId ?? campaigns?.[0]?.id} />
         </div>
         <AnomalyFeed anomalies={anomalies} loading={anomaliesLoading} campaigns={campaigns} />
       </div>

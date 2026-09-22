@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApi } from '../hooks/useApi'
+import { RefreshCw } from 'lucide-react'
 
 const severityStyle = {
   mild: 'border-amber-500 bg-amber-500/5',
@@ -14,11 +15,27 @@ const severityBadge = {
 
 export default function Anomalies() {
   const [filter, setFilter] = useState('all')
-  const { data: anomalies, loading } = useApi('/anomalies')
+  const [retrying, setRetrying] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { data: anomalies, loading } = useApi('/anomalies', [refreshKey])
   const { data: campaigns } = useApi('/campaigns')
 
   const campaignName = (id) => campaigns?.find(c => c.id === id)?.name ?? `Campaign ${id}`
   const filtered = filter === 'all' ? anomalies : anomalies?.filter(a => a.severity === filter)
+  const missingCount = anomalies?.filter(a => !a.explanation).length ?? 0
+
+  const retryMissing = async () => {
+    setRetrying(true)
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/anomalies/retry-explanations`, {
+        method: 'POST',
+        headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+      })
+      setRefreshKey((k) => k + 1)
+    } finally {
+      setRetrying(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -29,18 +46,30 @@ export default function Anomalies() {
           </h1>
           <p className="text-slate-500 text-sm">{anomalies?.length ?? '—'} total detected</p>
         </div>
-        <div className="flex gap-1 bg-[#111726] border border-slate-800 rounded-lg p-1">
-          {['all', 'mild', 'moderate', 'severe'].map((s) => (
+        <div className="flex items-center gap-2">
+          {missingCount > 0 && (
             <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 text-xs rounded capitalize transition-colors ${
-                filter === s ? 'bg-cyan-500 text-slate-900 font-medium' : 'text-slate-400 hover:text-slate-200'
-              }`}
+              onClick={retryMissing}
+              disabled={retrying}
+              className="flex items-center gap-1.5 text-cyan-400 text-xs border border-cyan-900 px-3 py-1.5 rounded hover:bg-cyan-500/10 transition-colors disabled:opacity-40"
             >
-              {s}
+              <RefreshCw size={12} className={retrying ? 'animate-spin' : ''} />
+              {retrying ? 'Retrying...' : `Retry ${missingCount} pending`}
             </button>
-          ))}
+          )}
+          <div className="flex gap-1 bg-[#111726] border border-slate-800 rounded-lg p-1">
+            {['all', 'mild', 'moderate', 'severe'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`px-3 py-1.5 text-xs rounded capitalize transition-colors ${
+                  filter === s ? 'bg-cyan-500 text-slate-900 font-medium' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

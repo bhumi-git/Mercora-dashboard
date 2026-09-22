@@ -11,19 +11,37 @@ export default function Campaigns() {
     if (!confirm(`Delete "${name}"? This removes all its metrics and anomalies too.`)) return
     setDeletingId(id)
     await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, {
-  method: 'DELETE',
-  headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
-})
+      method: 'DELETE',
+      headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+    })
     setDeletingId(null)
+    window.location.reload()
+  }
+
+  const handleResetAll = async () => {
+    if (!confirm('Clear ALL campaigns, metrics, and anomalies? This cannot be undone.')) return
+    await fetch(`${import.meta.env.VITE_API_URL}/reset`, {
+      method: 'DELETE',
+      headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+    })
     window.location.reload()
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Campaigns</h1>
-        <p className="text-slate-500 text-sm">{campaigns?.length ?? '—'} total</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Campaigns</h1>
+          <p className="text-slate-500 text-sm">{campaigns?.length ?? '—'} total</p>
+        </div>
+        <button
+          onClick={handleResetAll}
+          className="text-red-400 text-xs border border-red-900 px-3 py-1.5 rounded hover:bg-red-500/10 transition-colors"
+        >
+          Clear All Data
+        </button>
       </div>
+
       <div className="bg-[#111726] border border-slate-800 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -35,6 +53,9 @@ export default function Campaigns() {
             </tr>
           </thead>
           <tbody>
+            {loading && (
+              <tr><td colSpan={4} className="px-4 py-6 text-slate-600">Loading...</td></tr>
+            )}
             {campaigns?.map((c) => (
               <tr key={c.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                 <td className="px-4 py-3 text-white font-medium">{c.name}</td>

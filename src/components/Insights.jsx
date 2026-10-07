@@ -2,12 +2,21 @@ import { useState } from 'react'
 import { useApi } from '../hooks/useApi'
 import { Sparkles } from 'lucide-react'
 
+const severityColor = {
+  mild: 'text-amber-400',
+  moderate: 'text-orange-400',
+  severe: 'text-red-400',
+}
+
 export default function Insights() {
   const { data: campaigns } = useApi('/campaigns')
+  const { data: allAnomalies } = useApi('/anomalies')
   const [selectedId, setSelectedId] = useState(null)
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+
+  const existingForSelected = allAnomalies?.filter(a => a.campaign_id === selectedId) ?? []
 
   const runAnalysis = async () => {
     if (!selectedId) return
@@ -28,6 +37,10 @@ export default function Insights() {
     }
   }
 
+  const showNewResults = result && result.detected > 0
+  const showExisting = selectedId && (!result || result.detected === 0) && existingForSelected.length > 0
+  const showNothingAtAll = selectedId && result && result.detected === 0 && existingForSelected.length === 0
+
   return (
     <div className="space-y-6">
       <div>
@@ -40,7 +53,7 @@ export default function Insights() {
       <div className="bg-[#111726] border border-slate-800 rounded-lg p-4 flex items-center gap-3">
         <select
           value={selectedId ?? ''}
-          onChange={(e) => setSelectedId(Number(e.target.value))}
+          onChange={(e) => { setSelectedId(Number(e.target.value)); setResult(null) }}
           className="bg-slate-800 text-white text-sm rounded px-3 py-2 border border-slate-700 flex-1"
         >
           <option value="" disabled>Select a campaign...</option>
@@ -60,23 +73,40 @@ export default function Insights() {
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
-      {result && (
+      {showNewResults && (
         <div className="bg-[#111726] border border-slate-800 rounded-lg p-4">
-          <p className="text-white text-sm font-medium mb-3">
+          <p className="text-cyan-400 text-sm font-medium mb-3">
             {result.detected} new {result.detected === 1 ? 'anomaly' : 'anomalies'} found
           </p>
-          {result.detected === 0 && (
-            <p className="text-slate-500 text-sm">No new anomalies — this campaign's metrics are within expected range.</p>
-          )}
           <div className="space-y-3">
             {result.anomalies.map((a, i) => (
               <div key={i} className="border-l-2 border-cyan-500 pl-3">
-                <p className="text-white text-sm">{a.metric.toUpperCase()} · {a.date} · <span className="uppercase text-cyan-400 text-xs">{a.severity}</span></p>
+                <p className="text-white text-sm">{a.metric.toUpperCase()} · {a.date} · <span className={`uppercase text-xs ${severityColor[a.severity]}`}>{a.severity}</span></p>
                 <p className="text-slate-400 text-sm mt-1">{a.explanation ?? 'Analysis pending...'}</p>
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {showExisting && (
+        <div className="bg-[#111726] border border-slate-800 rounded-lg p-4">
+          <p className="text-slate-400 text-sm font-medium mb-3">
+            No new anomalies — showing {existingForSelected.length} previously detected for this campaign
+          </p>
+          <div className="space-y-3">
+            {existingForSelected.map((a) => (
+              <div key={a.id} className="border-l-2 border-slate-600 pl-3">
+                <p className="text-white text-sm">{a.metric.toUpperCase()} · {a.date} · <span className={`uppercase text-xs ${severityColor[a.severity]}`}>{a.severity}</span></p>
+                <p className="text-slate-400 text-sm mt-1">{a.explanation ?? 'Analysis pending...'}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showNothingAtAll && (
+        <p className="text-slate-500 text-sm">No anomalies — this campaign's metrics are fully within expected range.</p>
       )}
     </div>
   )
